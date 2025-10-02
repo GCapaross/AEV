@@ -1,0 +1,8 @@
+Username and password given by the teacher.
+OpenVPN
+Checkpointvpn
+Kali VM
+10.110.2.0/24
+10.110.2.254
+
+SCAPY
