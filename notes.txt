@@ -8,3 +8,8 @@ Kali VM
 SCAPY
 
 https://sweet.ua.pt/jpbarraca/course/aev
+
+Wall of garden, the restrictions on the outside and to the outisde are much more restrict than on the inside
+
+
+a' union select 1, table_name, column_name, 4, 5, 6, 7 from information_schema.columns; -- //
