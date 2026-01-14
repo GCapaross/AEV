@@ -121,9 +121,66 @@
             color: #e67e22;
             font-weight: 600;
         }
+
+        .toggle-stats {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.2s;
+            z-index: 1000;
+        }
+
+        .toggle-stats:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .review-now-btn {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #e74c3c;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #e74c3c;
+            transition: all 0.2s;
+            z-index: 1000;
+            display: none;
+        }
+
+        .review-now-btn.show {
+            display: block;
+        }
+
+        .review-now-btn:hover {
+            background: #e74c3c;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .stats-hidden .counter,
+        .stats-hidden .status {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
+    <button class="toggle-stats" onclick="toggleStats()">👁️ Hide Stats</button>
+    <button class="review-now-btn" id="reviewNowBtn" onclick="reviewNow()">🔄 Review Wrong Now</button>
+
     <div class="container">
         <div class="card" id="card" onclick="flipCard()">
             <div class="card-content" id="content"></div>
@@ -246,6 +303,8 @@
         let showingAnswer = false;
         let totalSeen = 0;
         let isReviewMode = false;
+        let statsHidden = false;
+        let immediateReview = false;
 
         function shuffle(array) {
             const arr = [...array];
@@ -272,11 +331,19 @@
 
         function updateStatus() {
             const status = document.getElementById('status');
+            const reviewBtn = document.getElementById('reviewNowBtn');
+
             if (isReviewMode) {
                 status.textContent = '🔄 REVIEW MODE: Get these right!';
                 status.style.display = 'block';
+                reviewBtn.classList.remove('show');
             } else {
                 status.style.display = 'none';
+                if (wrongAnswers.length > 0) {
+                    reviewBtn.classList.add('show');
+                } else {
+                    reviewBtn.classList.remove('show');
+                }
             }
         }
 
@@ -321,6 +388,11 @@
                 if (wrongAnswers.length > 0) {
                     // Start review mode with wrong answers
                     startReviewMode();
+                } else if (isReviewMode && immediateReview) {
+                    // Finished immediate review with no new wrong answers, restart everything
+                    immediateReview = false;
+                    totalSeen = 0;
+                    startNewRound();
                 } else if (isReviewMode) {
                     // Finished review with no new wrong answers, start new round
                     startNewRound();
@@ -347,6 +419,28 @@
             event.stopPropagation();
             // Don't add to wrong answers, just move to next
             nextCard();
+        }
+
+        function toggleStats() {
+            statsHidden = !statsHidden;
+            const card = document.getElementById('card');
+            const toggleBtn = document.querySelector('.toggle-stats');
+
+            if (statsHidden) {
+                card.classList.add('stats-hidden');
+                toggleBtn.textContent = '👁️ Show Stats';
+            } else {
+                card.classList.remove('stats-hidden');
+                toggleBtn.textContent = '👁️ Hide Stats';
+            }
+        }
+
+        function reviewNow() {
+            if (wrongAnswers.length > 0) {
+                immediateReview = true;
+                startReviewMode();
+                showCard();
+            }
         }
 
         // Initialize
