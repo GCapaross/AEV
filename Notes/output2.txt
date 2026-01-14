@@ -1,0 +1,290 @@
+Q: What is the Heap used for in memory management?
+A: The Heap is used to store dynamically allocated variables.
+
+Q: Which functions are used for allocation and release in C and C++ regarding the Heap?
+A: Allocation uses malloc, calloc, and new (C++), while release uses free or delete (C++).
+
+Q: What does a Heap chunk contain if it is free?
+A: A free chunk contains a Forward Pointer, a Backwards Pointer, the Previous Chunk Size (if the previous is free), and the Chunk Size plus flags.
+
+Q: What does the PREV_INUSE (0x01) flag indicate in a heap chunk?
+A: It indicates that the previous chunk is in use.
+
+Q: What defines a "Dangling Reference" in the context of Heap vulnerabilities?
+A: A dangling reference occurs when a pointer retains the address of a memory chunk that has already been freed, potentially giving access to memory for read and write purposes.
+
+Q: What are "Arenas" in the context of malloc?
+A: Arenas are regions of memory where memory is allocated from; typically, applications start with a "Main arena," and new threads use other arenas to prevent interference and locking overhead.
+
+Q: What is the maximum number of arenas malloc will create?
+A: The maximum number of arenas is 8 times the number of CPUs.
+
+Q: What are "Bins" in Glibc?
+A: Bins are lists of recently freed chunks stored by specific sizes to allow for reuse in future allocations, improving performance.
+
+Q: What is a "Double Free" vulnerability?
+A: It is an attempt to free a chunk that has already been freed; bins are used to detect this, as freeing a chunk at the top of a bin is restricted.
+
+Q: What characterizes "Unsorted bins"?
+A: Unsorted bins store chunks rapidly without considering their size; malloc later consolidates these chunks into other bins.
+
+Q: What are "Fastbins"?
+A: Fastbins are a set of single linked lists of free chunks with specific sizes (up to 80 bytes), designed for fast access to recent chunks using a LIFO pattern.
+
+Q: What is "Tcache" (Thread Local Cache)?
+A: Tcache is a per-thread cache containing a small collection of chunks that can be accessed without locking an arena, optimizing multi-threaded application performance.
+
+Q: How does a "Fast Bin attack" work?
+A: It explores bins to get a pointer to an already allocated area by double-freeing a buffer (e.g., free(a), free(b), free(a)), causing the bin to have duplicated entries and returning a shadow pointer to the same memory.
+
+Q: What does CWE-416 refer to?
+A: CWE-416 refers to "Use After Free".
+
+Q: What is the impact of writing to a freed pointer?
+A: It can lead to unexpected values, crashes, or code execution.
+
+Q: What is ASLR?
+A: Address Space Layout Randomization (ASLR) is a countermeasure where addresses are dynamic across process execution to make predicting addresses for jumps difficult.
+
+Q: What does the command echo 2 > /proc/sys/kernel/randomize_va_space do?
+A: It enables "Full Randomization," which includes the Stack, Heap, Shared Libs, and memory managed via brk().
+
+Q: What are PIE executables?
+A: Position Independent Executables (PIE) are compiled such that their base address does not matter, fully enabling ASLR as code can be placed dynamically.
+
+Q: How can ASLR and PIE be broken?
+A: They can be broken by finding a reference to a known function, as the relative distance between addresses remains constant (e.g., knowing printf location helps find system).
+
+Q: In a heap chunk, what does the flag IS_MMAPPED (0x02) signify?
+A: It signifies that the chunk was obtained via mmap().
+
+Q: What happens if an allocation failure occurs in Tcache?
+A: It results in using the normal slow path, which involves locking the arena and searching for chunks.
+
+Q: What is the specific role of the "Forward Pointer" in a free heap chunk?
+A: It is a 4-byte pointer to the next free chunk.
+
+Q: What is the purpose of "Largebins"?
+A: They store large chunks derived from unsorted bins that have been coalesced; allocating from them requires finding the "best suited" chunk.
+
+Q: How are "Smallbins" stored?
+A: They are stored in an ordered manner by fixed size and are usually not contiguous.
+
+Q: In a Fastbin attack, what is the result of allocating three buffers after a double free sequence (a, b, a)?
+A: The result is receiving a legitimate pointer, another legitimate pointer, and a "shadow pointer" pointing to the same memory as the first.
+
+Q: What does CWE-100 target regarding Buffer Overflows?
+A: It targets improper or missing bounds checking on buffer operations, typically triggered by injected input.
+
+Q: What are the potential impacts of a Buffer Overflow?
+A: Denial of Service (program crash) or potential redirection of execution (Remote Code Execution).
+
+Q: What is CWE-120?
+A: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow').
+
+Q: What is CWE-126?
+A: Buffer Over-read, which involves reading after the buffer ends.
+
+Q: Why are C and C++ considered "not memory safe"?
+A: Programmers can read/write memory freely without constraints on address or variable size, leading to access errors.
+
+Q: What does it mean that C/C++ are "not type safe"?
+A: Memory content can be reinterpreted (cast) arbitrarily, such as casting a buffer to an integer.
+
+Q: How does the Stack grow in memory?
+A: The Stack grows from top to bottom (from higher addresses to lower addresses).
+
+Q: What is stored in the BSS segment?
+A: Uninitialized global variables.
+
+Q: What does a Stack Frame store?
+A: It stores Return Information, Local Variables, and Arguments to following functions.
+
+Q: What is the function of the RBP register in x64 stack management?
+A: RBP (Base Pointer) is used for frame chaining; its address is pushed to the stack when a function is called and popped when it ends to restore the caller's frame.
+
+Q: What is the function of the RIP register during a function call?
+A: RIP (Instruction Pointer) holds the address of the next instruction, which is pushed to the stack when a function is called so execution can resume at the caller later.
+
+Q: In the context of stack vulnerabilities, what happens if sizeof(destination) is smaller than sizeof(input) during a copy?
+A: Memory is overwritten, which can affect local variables, change execution flow, or modify the stored Instruction Pointer.
+
+Q: What is a "Buffer Over-read" (CWE-126)?
+A: It occurs when software reads from a buffer and references memory locations after the targeted buffer, potentially disclosing private data.
+
+Q: What is "Stack Smashing"?
+A: It involves overwriting the stack to change the stored RBP or RIP, causing the program to jump to an arbitrary address (like a function or shellcode) upon return.
+
+Q: What is a "Return-to-libc" attack?
+A: An attack where the attacker jumps to relevant functions in loaded libraries (like system()) instead of injecting shellcode, often bypassing non-executable stack protections.
+
+Q: What is the "NX bit" or Data Executable Prevention?
+A: It is a countermeasure where stack segments are marked as Non-Executable, preventing the IP from jumping to code injected into the stack.
+
+Q: What are "Canaries" in stack protection?
+A: Canaries are reference values placed after local variables; the program compares this value before the function exits to detect if an overflow has occurred.
+
+Q: What does the compiler flag -fstack-protector-all do?
+A: It adds stack protection (canaries) to all functions regardless of their vulnerability.
+
+Q: What is ROP (Return Oriented Programming)?
+A: An attack technique that chains "gadgets" (snippets of code ending in RET) already present in the binary to execute malicious actions without injecting new code.
+
+Q: What is a "Gadget" in ROP?
+A: A suite of instructions ending with a branch instruction like ret (Intel) or bx lr (ARM).
+
+Q: What is JOP (Jump Oriented Programming)?
+A: A variant of ROP that explores small gadgets ending with an indirect JMP (e.g., jmp [register]) and uses a dispatcher table.
+
+Q: What is SOP (String Oriented Programming)?
+A: An attack utilizing format string bugs (e.g., printf(str)) to read/write arbitrary values, potentially triggering ROP or JOP.
+
+Q: What is BROP (Blind Return Oriented Programming)?
+A: An attack that allows writing exploits without the target binary by crashing a service to leak gadgets and eventually constructing a remote exploit.
+
+Q: What is libc's role in memory mapping?
+A: It is a shared library loaded into memory containing standard functions like printf and system, often located between the heap and the stack.
+
+Q: What is the typical page size in memory organization?
+A: Typically 4096 bytes.
+
+Q: What is the definition of CWE-362?
+A: Concurrent Execution using Shared Resource with Improper Synchronization (Race Condition).
+
+Q: What is a Race Condition?
+A: A condition occurring in concurrent environments where an interfering code sequence accesses a shared resource, violating exclusivity or atomicity.
+
+Q: What is CWE-367?
+A: Time-of-check Time-of-use (TOCTOU) Race Condition.
+
+Q: What characterizes a TOCTOU vulnerability?
+A: The software checks the state of a resource before using it, but the state changes between the check and use, invalidating the check.
+
+Q: What is CWE-385?
+A: Covert Timing Channel.
+
+Q: How does a Covert Timing Channel work?
+A: It conveys information by modulating system behavior over time, allowing an observer to infer protected information (e.g., guessing passwords based on comparison time).
+
+Q: What are the ACID characteristics of database operations?
+A: Atomicity, Consistency, Isolation, and Durability.
+
+Q: What is "Serializability" in concurrency?
+A: It ensures that a schedule for executing concurrent transactions is equivalent to one that executes them serially.
+
+Q: What is the "Read-Write Synchronization" condition for Serializability?
+A: If a transaction reads a value written by another transaction in one schedule, it must do so in the equivalent serial schedule.
+
+Q: How do Locks work in DBMS?
+A: They provide the capability to lock state so only a single set of operations may be executed while others wait.
+
+Q: What is "Versioning" in DBMS?
+A: A mechanism where DBMS advances DB state as versions; write operations execute from the last persisted version, and concurrent operations may require a refresh.
+
+Q: Why might pthread_mutex_lock fail?
+A: It might fail if the mutex is uninitialized (EINVAL), if the priority is incorrect, or if the maximum number of recursive locks is exceeded (EAGAIN).
+
+Q: Why is i++ considered a race condition risk in concurrent programming?
+A: It appears as a single operation but actually involves fetching from RAM, loading to register, incrementing, and storing back, which can be interrupted.
+
+Q: Give an example of a TOCTOU attack on a file system.
+A: A program checks os.access(filename) (TOC), but before open(filename) (TOU), the attacker replaces the file with a symbolic link to /etc/shadow.
+
+Q: What is CWE-365?
+A: Race Condition in Switch.
+
+Q: Why is the switch instruction dangerous regarding concurrency?
+A: The variable being switched on can change between comparisons, potentially matching an incorrect function or no function at all.
+
+Q: What is a Covert Storage Channel (CWE-515)?
+A: A path used to transfer information in a way not intended by the system designers, often relating to hidden state.
+
+Q: How can Covert Timing Channels in password validation be mitigated?
+A: By making functions time-constant or adding dominant random delays.
+
+Q: What is an example of a physical covert channel?
+A: Typing on a keyboard creates patterns due to hand anatomy, or touching a smartphone produces axis rotations.
+
+Q: What is an example of a protocol-based covert channel?
+A: Packet delays can discriminate VPN from VoIP, or packet intervals in VoIP can reveal information.
+
+Q: What is "Atomicity" in the context of race conditions?
+A: The property that a code sequence is behaviorally atomic, meaning no other thread can concurrently execute the same sequence against the same resource.
+
+Q: What is "Exclusivity" in the context of race conditions?
+A: The property that a code sequence is given exclusive access to a shared resource, preventing others from modifying it until completion.
+
+Q: What is "Cross Site Scripting" (XSS)?
+A: A vulnerability where an application includes unvalidated and unescaped user input as part of HTML output, allowing attackers to execute arbitrary HTML/JS in a victim's browser.
+
+Q: What is "Reflected XSS"?
+A: The application displays a string sent by the user (e.g., via a malicious URL) as part of the HTML output.
+
+Q: What is "Stored XSS"?
+A: The application stores unsanitized user input (injected by an attacker) which is later viewed and executed by another user or administrator.
+
+Q: What is "DOM XSS"?
+A: A vulnerability in JS frameworks or APIs where the application sends attacker-controllable data to unsafe JavaScript APIs, allowing the attacker to control remote resources.
+
+Q: What is CSRF (Cross Site Request Forgery)?
+A: An attack where the attacker subverts the client DOM or uses a crafted page to force the client browser to issue authenticated requests to an external server.
+
+Q: What is a "Synchronizer Token" (CSRF Token)?
+A: A hidden, random, and unique token added to forms; the server verifies this token to ensure the request is legitimate and not a CSRF attack.
+
+Q: What is the "Cookie-to-header" mitigation strategy?
+A: JS in the client reads a random value from a cookie and sends it in a custom header; this works because external scripts generally cannot access the cookie.
+
+Q: What does the SameSite=Strict cookie attribute do?
+A: It instructs the browser to only provide the cookie to requests originating from the same site, blocking access to external scripts.
+
+Q: What is "Double Cookie Submission"?
+A: A strategy using two cookies: a session cookie and a dynamic CSRF cookie; external requests fail because they lack information about the current CSRF cookie.
+
+Q: What is the "Same Origin Policy" (SOP)?
+A: A policy that restricts how a document or script loaded from one origin can interact with a resource from another origin.
+
+Q: How is an "Origin" defined in web security?
+A: By the protocol, host, and port (e.g., http://store.comp.com:80).
+
+Q: What is "Cross Origin Embedding"?
+A: The ability to embed resources from other origins using tags like <script>, <img>, <video>, or <iframe>.
+
+Q: What is CORS (Cross Origin Request Sharing)?
+A: A mechanism allowing applications to gain access to authorized data from other domains by using a relaxed Same Origin policy.
+
+Q: What is a CORS "Preflight Request"?
+A: A request sent by the browser to check permissions before sending the actual request, typically involving a method like OPTIONS.
+
+Q: When is a CORS Preflight NOT needed?
+A: When the request is HEAD/GET/POST via XHR, has no custom headers, and the body is text/plain.
+
+Q: What does the header Access-Control-Allow-Origin: * do?
+A: It effectively turns the content into a public resource, allowing access from any domain, which is a significant security risk.
+
+Q: What is the risk of "Caching of Preflight responses"?
+A: If the server changes access policies, the browser might still follow the old policy stored in the Preflight Result Cache until it expires.
+
+Q: How can an attacker exploit Access Control based on the Origin header?
+A: The attacker can spoof the Origin header (e.g., using cURL) to view sensitive information restricted to specific domains.
+
+Q: What is the impact of Stored XSS?
+A: It is severe, potentially allowing remote code execution, credential stealing, or malware delivery, often with administrator permissions.
+
+Q: What is the SameSite=Lax attribute behavior?
+A: It allows using cookies for same-site requests and top-level operations (like clicks that change location) but restricts others.
+
+Q: What are the three categories of interactions between origins in SOP?
+A: Cross origin writes, Cross origin embedding, and Cross origin reads (not allowed without CORS).
+
+Q: Why is "Universal Allow" (*) in CORS dangerous for intranet sites?
+A: An attacker can steal data from an intranet site by enticing a user to visit an external attacker-controlled site.
+
+Q: What is the relationship between malloc and threads regarding arenas?
+A: New threads use different arenas to avoid mutex lock costs; if too many arenas exist, malloc reuses existing ones.
+
+Q: What happens to data when a heap chunk is allocated?
+A: The call reserves a chunk and returns a pointer to the buffer (payload).
+
+Q: What constitutes the metadata of an In-use Chunk?
+A: prev_size, size, and flags (AMP: Allocated Arena, Mmap'd, Prev in use).
